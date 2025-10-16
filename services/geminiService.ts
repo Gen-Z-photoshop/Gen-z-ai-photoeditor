@@ -2,12 +2,6 @@ import { GoogleGenAI, Modality } from "@google/genai";
 
 const MODEL_NAME = 'gemini-2.5-flash-image';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Helper function to convert a File object to a base64 string
 const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -19,6 +13,11 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const editImageWithAI = async (imageFile: File, prompt: string): Promise<string> => {
+    if (!process.env.API_KEY) {
+        throw new Error("API_KEY environment variable not set. Please configure it to use the AI features.");
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     let base64ImageData: string;
     try {
         base64ImageData = await fileToBase64(imageFile);
