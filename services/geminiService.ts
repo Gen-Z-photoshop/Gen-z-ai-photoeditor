@@ -13,9 +13,6 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const editImageWithAI = async (imageFile: File, prompt: string): Promise<string> => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set. Please configure it to use the AI features.");
-    }
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     let base64ImageData: string;
