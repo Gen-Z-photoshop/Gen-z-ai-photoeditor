@@ -9,7 +9,16 @@ const App: React.FC = () => {
   const [editedImageUrl, setEditedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [runtimeError, setRuntimeError] = useState<string | null>(null);
+
+  const isApiConfigured = useMemo(() => !!process.env.API_KEY, []);
+  const apiKeyError = useMemo(() => 
+    !isApiConfigured ? 'API_KEY environment variable not set. Please configure it to use the AI features.' : null, 
+    [isApiConfigured]
+  );
+  const error = apiKeyError || runtimeError;
+  const isApiKeyError = !!apiKeyError;
+
 
   const originalImagePreview = useMemo(() => {
     if (!originalImageFile) return null;
@@ -21,20 +30,20 @@ const App: React.FC = () => {
     if (file) {
       setOriginalImageFile(null);
       setEditedImageUrl(null);
-      setError(null);
+      setRuntimeError(null);
       setIsUploading(true);
 
       // A small delay to ensure the UI updates to show the loader,
       // providing better user feedback for a very fast operation.
       setTimeout(() => {
         if (file.size > 4 * 1024 * 1024) { // 4MB limit
-          setError('Image size exceeds 4MB. Please choose a smaller file.');
+          setRuntimeError('Image size exceeds 4MB. Please choose a smaller file.');
           setIsUploading(false);
           return;
         }
         const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-          setError('Invalid file type. Please upload a PNG, JPG, or WEBP image.');
+          setRuntimeError('Invalid file type. Please upload a PNG, JPG, or WEBP image.');
           setIsUploading(false);
           return;
         }
@@ -45,13 +54,14 @@ const App: React.FC = () => {
   };
   
   const handleSubmit = useCallback(async () => {
+    if (!isApiConfigured) return; // Guard against submission when not configured
     if (!originalImageFile || !prompt.trim()) {
-      setError('Please upload an image and enter a prompt.');
+      setRuntimeError('Please upload an image and enter a prompt.');
       return;
     }
 
     setIsLoading(true);
-    setError(null);
+    setRuntimeError(null);
     setEditedImageUrl(null);
 
     try {
@@ -60,11 +70,11 @@ const App: React.FC = () => {
     } catch (e) {
       console.error(e);
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-      setError(errorMessage);
+      setRuntimeError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [originalImageFile, prompt]);
+  }, [originalImageFile, prompt, isApiConfigured]);
 
   return (
     <div className="min-h-screen text-white flex flex-col items-center p-4 sm:p-6 lg:p-8">
@@ -85,11 +95,11 @@ const App: React.FC = () => {
               className="hidden"
               accept="image/png, image/jpeg, image/webp"
               onChange={handleImageChange}
-              disabled={isUploading}
+              disabled={isUploading || !isApiConfigured}
             />
             <label
               htmlFor="image-upload"
-              className={`cursor-pointer w-full h-full flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-700 rounded-xl transition-colors ${!isUploading && 'hover:border-blue-500 hover:bg-gray-800/70'}`}
+              className={`w-full h-full flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl transition-colors ${!isApiConfigured ? 'border-gray-600 cursor-not-allowed bg-gray-800/50' : `border-blue-700 ${!isUploading && 'hover:border-blue-500 hover:bg-gray-800/70'}`} ${isApiConfigured && 'cursor-pointer'}`}
             >
               {isUploading ? (
                 <LoadingSpinner text="Processing image..." />
@@ -97,9 +107,13 @@ const App: React.FC = () => {
                 <img src={originalImagePreview} alt="Original preview" className="max-h-64 w-auto object-contain rounded-lg shadow-lg" />
               ) : (
                 <div className="text-center">
-                  <UploadIcon className="mx-auto h-12 w-12 text-gray-500" />
-                  <p className="mt-2 font-semibold text-gray-200">Click to upload an image</p>
-                  <p className="text-xs text-gray-400">PNG, JPG, WEBP up to 4MB</p>
+                  <UploadIcon className={`mx-auto h-12 w-12 ${!isApiConfigured ? 'text-gray-600' : 'text-gray-500'}`} />
+                  <p className={`mt-2 font-semibold ${!isApiConfigured ? 'text-gray-500' : 'text-gray-200'}`}>
+                    {isApiConfigured ? 'Click to upload an image' : 'Feature Unavailable'}
+                  </p>
+                  <p className={`text-xs ${!isApiConfigured ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {isApiConfigured ? 'PNG, JPG, WEBP up to 4MB' : 'API key is not configured.'}
+                  </p>
                 </div>
               )}
             </label>
@@ -114,15 +128,15 @@ const App: React.FC = () => {
               id="prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g., 'Add a futuristic city in the background' or 'Turn the dog into a robot'"
-              className="w-full h-28 p-3 bg-blue-950/50 border border-blue-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white resize-none"
-              disabled={!originalImageFile}
+              placeholder={isApiConfigured ? "e.g., 'Add a futuristic city in the background' or 'Turn the dog into a robot'" : "Please configure the API Key to enable editing."}
+              className="w-full h-28 p-3 bg-blue-950/50 border border-blue-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white resize-none disabled:bg-gray-800/60 disabled:cursor-not-allowed"
+              disabled={!originalImageFile || !isApiConfigured}
             />
           </div>
 
           <button
             onClick={handleSubmit}
-            disabled={!originalImageFile || !prompt.trim() || isLoading}
+            disabled={!originalImageFile || !prompt.trim() || isLoading || !isApiConfigured}
             className="w-full flex items-center justify-center gap-3 py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400 transition-all duration-300 transform hover:scale-105"
           >
             <SparklesIcon className="h-6 w-6" />
@@ -143,7 +157,7 @@ const App: React.FC = () => {
             <div className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg flex items-start gap-3">
               <ErrorIcon className="h-6 w-6 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-red-300">Error</p>
+                <p className="font-semibold text-red-300">{isApiKeyError ? 'Configuration Error' : 'Error'}</p>
                 <p className="text-red-400 text-sm">{error}</p>
               </div>
             </div>
