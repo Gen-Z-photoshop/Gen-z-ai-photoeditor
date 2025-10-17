@@ -1,5 +1,5 @@
 {
-  "name": "Gen'z Hub",
-  "description": "An AI-powered photo editor from Gen'z Hub. Edit your images based on simple text prompts. Upload a photo, describe your edit, and let our AI bring your vision to life.",
+  "name": "Gemini Photo Editor",
+  "description": "An AI-powered photo editor powered by Google Gemini. Edit your images based on simple text prompts. Upload a photo, describe your edit, and let Gemini bring your vision to life.",
   "requestFramePermissions": []
 }

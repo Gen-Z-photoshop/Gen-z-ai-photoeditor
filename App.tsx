@@ -70,9 +70,9 @@ const App: React.FC = () => {
     <div className="min-h-screen text-white flex flex-col items-center p-4 sm:p-6 lg:p-8">
       <header className="w-full max-w-6xl text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-400">
-          Gen'z Hub
+          Gemini Photo Editor
         </h1>
-        <p className="text-gray-300 mt-2">Unleash your creativity with Gen'z Hub AI</p>
+        <p className="text-gray-300 mt-2">Unleash your creativity with Google's Gemini AI</p>
       </header>
 
       <main className="w-full max-w-6xl flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -152,7 +152,7 @@ const App: React.FC = () => {
       </main>
       
       <footer className="w-full max-w-6xl text-center mt-8 text-gray-400 text-sm">
-        <p>Powered by Leo</p>
+        <p>Powered by Google Gemini</p>
       </footer>
     </div>
   );

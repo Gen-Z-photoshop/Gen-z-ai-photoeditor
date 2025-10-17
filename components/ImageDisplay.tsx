@@ -26,7 +26,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ title, imageUrl, isLoading,
     // Extract file extension from base64 mime type for a better filename
     const mimeTypeMatch = imageUrl.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
     const extension = mimeTypeMatch && mimeTypeMatch.length > 1 ? mimeTypeMatch[1].split('/')[1] : 'png';
-    link.download = `genz-hub-edit.${extension}`;
+    link.download = `gemini-photo-editor-edit.${extension}`;
     
     document.body.appendChild(link);
     link.click();
